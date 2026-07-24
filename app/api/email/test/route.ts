@@ -58,12 +58,14 @@ export async function POST(req: NextRequest) {
   const limited = rateLimit(`email-test:${getClientIp(req)}`, 3, 60 * 60_000);
   if (limited) return limited;
 
-  if (req.body) {
-    return NextResponse.json(
-      { ok: false, error: "This endpoint does not accept a request body." },
-      { status: 400 },
-    );
-  }
+const body = await req.text();
+
+if (body.trim().length > 0) {
+  return NextResponse.json(
+    { ok: false, error: "This endpoint does not accept a request body." },
+    { status: 400 },
+  );
+}
 
   try {
     const { from, to } = getTestEmailAddresses();
