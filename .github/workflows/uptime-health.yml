@@ -52,8 +52,17 @@ jobs:
             process.exit(1);
           }
 
-          const failedChecks = Object.entries(data.checks || {}).filter(([, value]) => {
-            return value !== "ok" && value !== "configured";
+          const allowedCheckStates = {
+            database: new Set(["ok"]),
+            jwt: new Set(["configured"]),
+            email: new Set(["configured", "disabled"]),
+            cron: new Set(["configured", "disabled"]),
+            storage: new Set(["configured", "database-fallback"]),
+          };
+
+          const failedChecks = Object.entries(data.checks || {}).filter(([name, value]) => {
+            const allowedValues = allowedCheckStates[name];
+            return !allowedValues || !allowedValues.has(value);
           });
 
           if (failedChecks.length > 0) {
